@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
+  <title>Lista de Recados</title>
+</head>
+
+<body>
+  <h1>Lista de Recados</h1>
+  <!-- Lista de Recados do Usuário Logado -->
+  <h2>Recados</h2>
+
+  <!-- Formulário para Adicionar Recado -->
+  <h2>Adicionar Recado</h2>
+  <form id="formRecado">
+    <label for="titulo">Título:</label>
+    <input type="text" id="titulo" required>
+    <br>
+    <label for="descricao">Descrição:</label>
+    <input type="text" id="descricao" required>
+    <br>
+    <button type="submit">Adicionar Recado</button>
+  </form>
+
+  <div id="recados"></div>
+
+  <script src="recados.js"></script>
+</body>
+
+</html>
