@@ -1,10 +1,10 @@
 // app.js
-const baseUrl = "http://localhost:8080"; // Altere para a URL base da sua API
+const baseUrl = "http://localhost:8080"; //  URL base da API
 let usuarioLogadoId = null;
 
 // Função para realizar o login
-async function login(event) {
-  event.preventDefault();
+async function login(e) {
+  e.preventDefault(); //não deixa a página recarregar
 
   const email = document.getElementById("emailLogin").value;
   const senha = document.getElementById("senhaLogin").value;
@@ -19,7 +19,9 @@ async function login(event) {
 
   if (response.ok) {
     const data = await response.json();
-    usuarioLogadoId = data.usuario.id; // Define o ID do usuário logado
+    const idUser = data.usuario.id;
+    usuarioLogadoId = idUser; // Define o ID do usuário logado
+    localStorage.setItem("usuarioLogado", idUser); // Use "usuarioLogado" como chave
     alert("Usuário logado com sucesso.");
     document.getElementById("emailLogin").value = "";
     document.getElementById("senhaLogin").value = "";

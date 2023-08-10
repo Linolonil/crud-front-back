@@ -1,30 +1,27 @@
-const baseUrl = "http://localhost:8080"; // Altere para a URL base da sua API
+const baseUrl = "http://localhost:8080"; // Base da API
 
-// Verificar a sessão e carregar os recados ao carregar a página
 window.addEventListener("DOMContentLoaded", () => {
-  const usuarioLogado = localStorage.getItem("usuarioLogado");
+  const usuarioLogadoId = localStorage.getItem("usuarioLogado");
 
-  if (!usuarioLogado) {
-    // Redirecionar para a página de login
-    window.location.href = "recados.html";
+  if (!usuarioLogadoId) {
+    // Redirecionar para a tela de login
+    window.location.href = "index.html";
   } else {
-    // Carregar os recados do usuário logado
-    carregarRecados();
+    // Continuar com o carregamento dos recados do usuário logado
+    carregarRecados(usuarioLogadoId);
   }
 });
 
 // Função para fazer uma requisição GET e carregar a lista de recados
-function carregarRecados() {
-  const usuarioLogado = JSON.parse(localStorage.getItem("usuarioLogado"));
-
-  fetch("http://localhost:8080/usuarios/recados", {
+function carregarRecados(usuarioLogadoId) {
+  fetch(`${baseUrl}/recados`, {
     headers: {
-      Authorization: `Bearer ${usuarioLogado.id}`, // Enviar o ID do usuário no cabeçalho Authorization
+      Authorization: `Bearer ${usuarioLogadoId}`, // Enviar o ID do usuário no cabeçalho Authorization
     },
   })
     .then((response) => response.json())
     .then((data) => {
-      const recadosContainer = document.getElementById("recadosContainer");
+      const recadosContainer = document.getElementById("recados");
       recadosContainer.innerHTML = "";
 
       if (data.recados.length === 0) {
@@ -33,8 +30,9 @@ function carregarRecados() {
         data.recados.forEach((recado) => {
           const recadoDiv = document.createElement("div");
           recadoDiv.innerHTML = `<h3>${recado.titulo}</h3>
-                                     <p>${recado.descricao}</p>
-                                     <p>Autor: ${recado.author}</p>`;
+                                   <p>${recado.descricao}</p>
+                                   <button onclick="editarRecado(${recado.id}, '${recado.titulo}', '${recado.descricao}')">Editar</button>
+                                   <button onclick="excluirRecado(${recado.id})">Excluir</button>`;
           recadosContainer.appendChild(recadoDiv);
         });
       }
@@ -44,36 +42,11 @@ function carregarRecados() {
     });
 }
 
-// Função para listar os recados do usuário logado
-async function listarRecados() {
-  const response = await fetch(`${baseUrl}/recados`, {
-    headers: {
-      Authorization: `Bearer ${usuarioLogadoId}`,
-    },
-  });
-
-  if (response.ok) {
-    const data = await response.json();
-    console.log(data);
-    const recadosDiv = document.getElementById("recados");
-
-    if (data.recados && data.recados.length > 0) {
-      recadosDiv.innerHTML = data.recados
-        .map((recado) => `<p>${recado.titulo} - ${recado.descricao}</p>`)
-        .join("");
-    } else {
-      recadosDiv.innerHTML = "<p>Nenhum recado encontrado.</p>";
-    }
-  } else {
-    // Remova o alert para não exibir uma mensagem de erro
-    console.log("Erro ao listar os recados.");
-  }
-}
-
 // Função para adicionar um novo recado
 async function adicionarRecado(event) {
   event.preventDefault();
 
+  const usuarioLogadoId = localStorage.getItem("usuarioLogado"); // Obtém o ID do usuário logado
   const titulo = document.getElementById("titulo").value;
   const descricao = document.getElementById("descricao").value;
 
@@ -88,18 +61,79 @@ async function adicionarRecado(event) {
 
   if (response.ok) {
     alert("Recado adicionado com sucesso.");
-    listarRecados(); // Atualizar a lista de recados após a adição
+    carregarRecados(usuarioLogadoId); // Atualizar a lista de recados após a adição
   } else {
     alert("Erro ao adicionar recado.");
   }
 }
+
+//Função que cria alert que atualiza e chama a função atualizar recado
+function editarRecado(recadoId, tituloAtual, descricaoAtual) {
+  const novoTitulo = prompt("Novo título:", tituloAtual);
+  const novaDescricao = prompt("Nova descrição:", descricaoAtual);
+
+  if (novoTitulo !== null && novaDescricao !== null) {
+    atualizarRecado(recadoId, novoTitulo, novaDescricao);
+  }
+}
+
+// Função para atualizar um recado
+async function atualizarRecado(recadoId, novoTitulo, novaDescricao) {
+  const usuarioLogadoId = localStorage.getItem("usuarioLogado");
+
+  const response = await fetch(`${baseUrl}/recados/${recadoId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${usuarioLogadoId}`,
+    },
+    body: JSON.stringify({ titulo: novoTitulo, descricao: novaDescricao }),
+  });
+
+  if (response.ok) {
+    alert("Recado atualizado com sucesso.");
+    carregarRecados(usuarioLogadoId); // Atualizar a lista de recados após a atualização
+  } else {
+    alert("Erro ao atualizar recado.");
+  }
+}
+
+// Função para excluir um recado
+async function excluirRecado(recadoId) {
+  const usuarioLogadoId = localStorage.getItem("usuarioLogado");
+
+  const response = await fetch(`${baseUrl}/recados/${recadoId}`, {
+    method: "DELETE",
+    headers: {
+      Authorization: `Bearer ${usuarioLogadoId}`,
+    },
+  });
+
+  if (response.ok) {
+    alert("Recado excluído com sucesso.");
+    carregarRecados(usuarioLogadoId); // Atualizar a lista de recados após a exclusão
+  } else {
+    alert("Erro ao excluir recado.");
+  }
+}
+
 // Função para inicializar a aplicação
 function init() {
   const formRecado = document.getElementById("formRecado");
-  formRecado.addEventListener("submit", adicionarRecado);
+  const tituloInput = document.getElementById("titulo");
+  const descricaoInput = document.getElementById("descricao");
 
-  listarRecados();
+  formRecado.addEventListener("submit", (e) => {
+    e.preventDefault();
+    adicionarRecado(e);
+    // Limpar os campos após adicionar o recado
+    tituloInput.value = "";
+    descricaoInput.value = "";
+  });
 }
 
 // Iniciar a aplicação após o carregamento da página
-window.addEventListener("load", init);
+window.addEventListener("load", () => {
+  init();
+  carregarRecados(); // Carregar os recados do usuário logado
+});

@@ -1,8 +1,8 @@
-const baseUrl = "http://localhost:8080"; // Altere para a URL base da sua API
+const baseUrl = "http://localhost:8080"; // base da  API
 
 // Função para realizar o cadastro
-async function cadastrar(event) {
-  event.preventDefault();
+async function cadastrar(e) {
+  e.preventDefault(); //não deixa a página recarregar
 
   const email = document.getElementById("emailCadastro").value;
   const senha = document.getElementById("senhaCadastro").value;
@@ -21,7 +21,9 @@ async function cadastrar(event) {
     document.getElementById("senhaCadastro").value = "";
     window.location.href = "index.html";
   } else {
-    alert("Erro ao cadastrar usuário.");
+    
+    const data = await response.json();
+    alert(data.mensagem);
   }
 }
 
